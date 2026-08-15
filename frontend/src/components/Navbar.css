@@ -1,0 +1,18 @@
+* {
+    box-sizing: border-box;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: antiquewhite;
+    width: 100%;
+}
+
+.nav_links ul {
+    display: flex;
+    gap: 1.5rem;
+    list-style: none;
+}
