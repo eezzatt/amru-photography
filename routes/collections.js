@@ -8,7 +8,7 @@ const uploadToCloudinary = require('../config/uploadToCloudinary')
 router.get('/', async (req, res) => {
     try {
         const response = await pool.query(
-            'SELECT * FROM collections'
+            'SELECT collections.*, photos.thumbnail_url AS cover_thumbnail_url FROM collections LEFT JOIN photos ON collections.cover_photo_id = photos.id'
         )
 
         if (!response.rows[0]) {
