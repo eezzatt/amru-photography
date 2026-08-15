@@ -87,12 +87,12 @@ router.post('/insert/:slug/photos', authenticateToken, async (req, res) => {
             return res.status(400).json({ error: "Photo url required"})
         }
 
-        const collection_id = await pool.query(
-            'SELECT id FROM collections WHERE slug = $1',
+        const collection = await pool.query(
+            'SELECT id, cover_photo_id FROM collections WHERE slug = $1',
             [slug]
         )
 
-        if (!collection_id.rows[0]) {
+        if (!collection.rows[0]) {
             return res.status(400).json({ error: "Collection does not exist" })
         }
 
@@ -100,16 +100,33 @@ router.post('/insert/:slug/photos', authenticateToken, async (req, res) => {
 
         await client.query('BEGIN')
 
+        let firstPhotoId = null
+
         for (const photo of photos) {
+            if (firstPhotoId === null) {
+                const response = await client.query(
+                    'INSERT INTO photos (collection_id, url, thumbnail_url, height, width) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+                    [collection.rows[0].id, photo.url, photo.thumbnail_url, photo.height, photo.width]
+                )
+                firstPhotoId = response.rows[0].id
+            }
+            else {
+                await client.query(
+                    'INSERT INTO photos (collection_id, url, thumbnail_url, height, width) VALUES ($1, $2, $3, $4, $5)',
+                    [collection.rows[0].id, photo.url, photo.thumbnail_url, photo.height, photo.width]
+                )
+            }
+        }
+
+        if (collection.rows[0].cover_photo_id === null) {
             await client.query(
-                'INSERT INTO photos (collection_id, url, thumbnail_url, height, width) VALUES ($1, $2, $3, $4, $5)',
-                [collection_id.rows[0].id, photo.url, photo.thumbnail_url, photo.height, photo.width]
+                'UPDATE collections SET cover_photo_id = $1 WHERE id = $2',
+                [firstPhotoId, collection.rows[0].id]
             )
         }
 
         await client.query('COMMIT')
         return res.json({ message: "Photos successfully inserted"})
- 
         }
     catch (err) {
         if (client) await client.query('ROLLBACK')
