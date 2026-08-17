@@ -22,7 +22,10 @@ function Collectionsgrid() {
     return (
         <div className="collections_grid">
             {galleries.map((gallery) => (
-                <img key={gallery.id} src={gallery.cover_thumbnail_url} alt="collection_thumbnail"></img>
+                <div key={gallery.id}>
+                    <img src={gallery.cover_thumbnail_url} alt="collection_thumbnail"></img>
+                    <h3>{gallery.name}</h3>
+                </div>
             ))}
         </div>
     )

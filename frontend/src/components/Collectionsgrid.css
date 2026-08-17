@@ -1,6 +1,7 @@
 .collections_grid {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
-    justify-content: center;
-    margin: 1rem;
+    padding: 1rem;
+    place-items: center;
 }
