@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import './Collectionsgrid.css'
 
 function Collectionsgrid() {
     const [galleries, setGalleries] = useState([])
@@ -19,9 +20,9 @@ function Collectionsgrid() {
     }, [])
 
     return (
-        <div>
+        <div className="collections_grid">
             {galleries.map((gallery) => (
-                <p key={gallery.id}>{gallery.name}</p>
+                <img key={gallery.id} src={gallery.cover_thumbnail_url} alt="collection_thumbnail"></img>
             ))}
         </div>
     )
