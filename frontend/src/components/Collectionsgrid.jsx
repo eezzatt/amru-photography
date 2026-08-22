@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import './Collectionsgrid.css'
+import { Link } from "react-router-dom";
 
 function Collectionsgrid() {
     const [galleries, setGalleries] = useState([])
@@ -23,8 +24,10 @@ function Collectionsgrid() {
         <div className="collections_grid">
             {galleries.map((gallery) => (
                 <div key={gallery.id}>
-                    <img src={gallery.cover_thumbnail_url} alt="collection_thumbnail"></img>
-                    <h3>{gallery.name}</h3>
+                    <Link to={`/collections/${gallery.slug}`}>
+                        <img src={gallery.cover_thumbnail_url} alt="collection_thumbnail"></img>
+                        <h3>{gallery.name}</h3>
+                    </Link>
                 </div>
             ))}
         </div>
