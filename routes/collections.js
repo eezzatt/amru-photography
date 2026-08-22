@@ -36,6 +36,10 @@ router.get('/:slug/photos', async (req, res) => {
             return res.status(400).json({ error: "No such collection exists"})
         }
 
+        const collection_name = collection_id_response.rows[0].name
+
+        const collection_description = collection_id_response.rows[0].description
+
         const collection_id = collection_id_response.rows[0].id
 
         const response = await pool.query(
@@ -43,7 +47,11 @@ router.get('/:slug/photos', async (req, res) => {
             [collection_id]
         )
 
-        return res.json({ photos: response.rows })
+        return res.json({ 
+            name: collection_name,
+            description: collection_description,
+            photos: response.rows 
+        })
     }
     catch (err) {
         return res.status(500).json({ error: "Internal server error" })
