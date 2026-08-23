@@ -158,7 +158,9 @@ router.post('/upload', authenticateToken, upload.array('photos', 50), async (req
         const uploadedPhotos = results.map(result => ({
             url: result.secure_url,
             public_id: result.public_id,
-            thumbnail_url: result.secure_url.replace('/upload', '/upload/w_300,h_300,c_fill')
+            thumbnail_url: result.secure_url.replace('/upload', '/upload/w_300,h_300,c_fill'),
+            width: result.width,
+            height: result.height
         }))
 
         res.status(200).json({ photos: uploadedPhotos })
