@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
+import './CollectionsGallery.css'
 
 function CollectionsGallery() {
     const { slug } = useParams()
@@ -32,9 +33,11 @@ function CollectionsGallery() {
             <h3>
                 {description}
             </h3>
-            {photoList.map((photo) => (
+            <div className="gallery-grid">
+                {photoList.map((photo) => (
                 <img key={photo.id} src={photo.url} alt='photos'></img>
             ))}
+            </div>
         </div>
     )
 }
