@@ -9,6 +9,7 @@ function Navbar() {
                     <li><a>Contact</a></li>
                     <li><a>FAQs</a></li>
                     <li><a>Reviews</a></li>
+                    <li><a href='/login'>Admin-Login</a></li>
                 </ul>
             </div>
         </nav>
