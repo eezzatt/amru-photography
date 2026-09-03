@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import "./LoginPage.css"
 
 function LoginPage() {
     const [email, setEmail] = useState('')
@@ -37,23 +38,26 @@ function LoginPage() {
     }
 
     return (
-        <div>
-            <form onSubmit={handleSubmit}>
-                <label>Email: </label>
-                <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-
-                <label>Password: </label>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
-
-                <button type="submit">Login</button>
+        <div className="login-card">
+            <form onSubmit={handleSubmit} className="login-form">
+                <div className="login-email">
+                    <label>Email: </label>
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </div>
+                <div className="login-password">
+                    <label>Password: </label>
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </div>
+                
+                <button className="login-button" type="submit">Login</button>
 
                 {error && <p>{error}</p>}
             </form>

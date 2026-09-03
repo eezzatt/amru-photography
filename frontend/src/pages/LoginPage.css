@@ -1,0 +1,38 @@
+.login-card {
+    background-color: antiquewhite;
+    width: 50%;
+    margin: auto;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    padding: 4rem;
+    border-radius: 10px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-email, .login-password {
+    width: 100%;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form input, .login-form button {
+    width: 100%;
+    max-width: 300px;
+}
+
+.login-form button {
+    padding: 0.5rem;
+    background-color: aliceblue;
+}
+
+.login-form button:hover {
+    cursor: pointer;
+}
