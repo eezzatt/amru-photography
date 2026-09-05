@@ -25,7 +25,7 @@ function LoginPage() {
             if (response.ok) {
                 const data = await response.json()
                 localStorage.setItem("token", data.token)
-                navigate('/admin-dashboard')
+                navigate('/')
             }
             else {
                 const data = await response.json()
