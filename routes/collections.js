@@ -73,7 +73,10 @@ router.post('/create', authenticateToken, async (req, res) => {
             [collection_name, slug, description]
         )
 
-        return res.json({ message: "Collection successfully created" })
+        return res.json({
+            message: "Collection successfully created",
+            collection_slug: slug
+        })
     }
     catch (err) {
         if (err.code === '23505') {
