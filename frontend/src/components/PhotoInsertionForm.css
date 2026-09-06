@@ -1,0 +1,19 @@
+.photo-upload-card {
+    background-color: antiquewhite;
+    padding: 2rem;
+    width: 50%;
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 20px;
+}
+
+.photo-upload-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.photo-upload-card button {
+    margin-top: 0.5rem;
+}
