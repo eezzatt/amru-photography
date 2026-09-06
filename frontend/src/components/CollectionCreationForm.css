@@ -1,0 +1,38 @@
+.collection-creation-card {
+    background-color: antiquewhite;
+    padding: 2rem;
+    margin: auto;
+    margin-bottom: 10px;
+    width: 50%;
+    border-radius: 20px;
+}
+
+.collection-creation-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.collection-creation-form div {
+    width: 100%;
+}
+
+.collection-name, .collection-desc {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.collection-name input, .collection-desc input {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.collection-creation-form button {
+    padding: 0.5rem;
+    width: 30%;
+    margin: auto;
+}
+
+.collection-creation-form button:hover {
+    cursor: pointer;
+}
