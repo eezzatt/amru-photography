@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import './CollectionsGallery.css'
+import Modal from "../components/Modal"
+import PhotoInsertionForm from "../components/PhotoInsertionForm"
+import { useAuth } from "../hooks/useAuth"
 
 function CollectionsGallery() {
     const { slug } = useParams()
     const [photoList, setPhotos] = useState([])
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+    const isLoggedIn = useAuth()
 
     useEffect(() => {
         async function loadPhotos() {
@@ -37,6 +43,10 @@ function CollectionsGallery() {
                 {photoList.map((photo) => (
                 <img key={photo.id} src={photo.url} alt='photos'></img>
             ))}
+                {isLoggedIn && <button onClick={() => setIsModalOpen(true)}>Add photo</button>}
+                <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                    <PhotoInsertionForm slug={slug}></PhotoInsertionForm>
+                </Modal>
             </div>
         </div>
     )
