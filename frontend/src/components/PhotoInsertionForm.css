@@ -17,3 +17,7 @@
 .photo-upload-card button {
     margin-top: 0.5rem;
 }
+
+.photo-upload-card button:hover {
+    cursor: pointer;
+}
