@@ -174,4 +174,74 @@ router.post('/upload', authenticateToken, upload.array('photos', 50), async (req
 })
 
 
+router.delete('/delete/:slug', authenticateToken, async(req, res) => {
+    try {
+        const slug = req.params.slug
+        const collection_id_response = await pool.query(
+            'SELECT id FROM collections where slug = $1',
+            [slug]
+        )
+
+        if (!collection_id_response.rows[0]) {
+            return res.status(404).json({ error: "Collection does not exist"})
+        }
+
+        const collection_id = collection_id_response.rows[0].id
+
+        await pool.query('DELETE FROM photos where collection_id=$1', [collection_id])
+
+        await pool.query('DELETE FROM collections where id=$1', [collection_id])
+
+        return res.json({ message: "Collection deleted" })
+    }
+    catch (err) {
+        return res.status(500).json({ error: "Collection deletion failed"})
+    }
+})
+
+
+router.delete('/delete/:slug/photos', authenticateToken, async(req, res) => {
+    let client
+    try {
+        const slug = req.params.slug
+        const collection_id_response = await pool.query('SELECT id FROM collections WHERE slug=$1',
+            [slug]
+        )
+
+        if (!collection_id_response.rows[0]) {
+            return res.status(400).json({ error: "Collection does not exist" })
+        }
+
+        const collection_id = collection_id_response.rows[0].id
+
+        const { photo_ids } = req.body
+
+        if (!Array.isArray(photo_ids) || photo_ids.length === 0) {
+            return res.status(400).json({ error: "Photo IDs required"})
+        }
+        
+        client = await pool.connect()
+
+        await client.query('BEGIN')
+
+        for (const photo_id of photo_ids) {
+            await client.query('DELETE FROM photos WHERE id=$1 AND collection_id=$2',
+                [photo_id, collection_id]
+            )
+        }
+
+        await client.query('COMMIT')
+
+        return res.json({ message: "Photos deleted successfully"})
+    }
+    catch (err) {
+        if (client) await client.query('ROLLBACK')
+        return res.status(500).json({ message: "Internal server error" }    )
+    }
+    finally {
+        if (client) client.release()
+    }
+})
+
+
 module.exports = router
