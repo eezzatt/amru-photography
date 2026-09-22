@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import './Collectionsgrid.css'
 import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import Modal from "./Modal";
+import CollectionCreationForm from "./CollectionCreationForm";
 
 function Collectionsgrid() {
     const [galleries, setGalleries] = useState([])
+    const [isModalOpen, setIsModalOpen] = useState(false)
+
+    const isLoggedIn = useAuth()
 
     useEffect(() => {
         async function loadCollections() {
@@ -30,6 +36,11 @@ function Collectionsgrid() {
                     </Link>
                 </div>
             ))}
+            {isLoggedIn && <button onClick={() => setIsModalOpen(true)}>Add collection</button>}
+            {isModalOpen &&
+                <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                    <CollectionCreationForm></CollectionCreationForm>
+                </Modal>}
         </div>
     )
 }
