@@ -4,6 +4,7 @@ const pool = require('../config/db')
 const authenticateToken = require('../middleware/authenticateToken')
 const upload = require('../config/upload')
 const uploadToCloudinary = require('../config/uploadToCloudinary')
+const deleteFromCloudinary = require('../config/deleteFromCloudinary')
 
 router.get('/', async (req, res) => {
     try {
@@ -240,6 +241,32 @@ router.delete('/delete/:slug/photos', authenticateToken, async(req, res) => {
     }
     finally {
         if (client) client.release()
+    }
+})
+
+
+router.delete('/delete/:slug/photos/cloudinary', authenticateToken, async (req, res) => {
+    try {
+        const { public_ids } = req.body
+
+        if (!Array.isArray(public_ids) || public_ids.length === 0) {
+            return res.status(400).json({ error: "Public IDs required"})
+        }
+
+        const deletePromises = public_ids.map(public_id => deleteFromCloudinary(public_id))
+
+        const results = await Promise.all(deletePromises)
+
+        for (const result of results) {
+            if (result.result != 'ok') {
+                return res.status(500).json({ error: "Deletion unsuccessful" })
+            }
+        }
+
+        return res.json({ message: "Photos removed successfully"})
+    }
+    catch (err) {
+        return res.status(500).json({ error: "Internal server error" })
     }
 })
 
