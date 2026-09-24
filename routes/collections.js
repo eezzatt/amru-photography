@@ -12,9 +12,9 @@ router.get('/', async (req, res) => {
             'SELECT collections.*, photos.thumbnail_url AS cover_thumbnail_url FROM collections LEFT JOIN photos ON collections.cover_photo_id = photos.id'
         )
 
-        if (!response.rows[0]) {
-            return res.status(400).json({ error: "No collection exists"})
-        }
+        // if (!response.rows[0]) {
+        //     return res.status(400).json({ error: "No collection exists"})
+        // }
 
         return res.json({ collections: response.rows })
     }
@@ -117,15 +117,15 @@ router.post('/insert/:slug/photos', authenticateToken, async (req, res) => {
         for (const photo of photos) {
             if (firstPhotoId === null) {
                 const response = await client.query(
-                    'INSERT INTO photos (collection_id, url, thumbnail_url, height, width) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-                    [collection.rows[0].id, photo.url, photo.thumbnail_url, photo.height, photo.width]
+                    'INSERT INTO photos (collection_id, public_id, url, thumbnail_url, height, width) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+                    [collection.rows[0].id, photo.public_id, photo.url, photo.thumbnail_url, photo.height, photo.width]
                 )
                 firstPhotoId = response.rows[0].id
             }
             else {
                 await client.query(
-                    'INSERT INTO photos (collection_id, url, thumbnail_url, height, width) VALUES ($1, $2, $3, $4, $5)',
-                    [collection.rows[0].id, photo.url, photo.thumbnail_url, photo.height, photo.width]
+                    'INSERT INTO photos (collection_id, public_id, url, thumbnail_url, height, width) VALUES ($1, $2, $3, $4, $5, $6)',
+                    [collection.rows[0].id, photo.public_id, photo.url, photo.thumbnail_url, photo.height, photo.width]
                 )
             }
         }
@@ -237,7 +237,7 @@ router.delete('/delete/:slug/photos', authenticateToken, async(req, res) => {
     }
     catch (err) {
         if (client) await client.query('ROLLBACK')
-        return res.status(500).json({ message: "Internal server error" }    )
+        return res.status(500).json({ message: "Internal server error" })
     }
     finally {
         if (client) client.release()
