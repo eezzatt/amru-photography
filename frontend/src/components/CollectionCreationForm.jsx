@@ -64,7 +64,8 @@ function CollectionCreationForm () {
                                         url: photos[0].url,
                                         thumbnail_url: photos[0].thumbnail_url,
                                         width: photos[0].width,
-                                        height: photos[0].height
+                                        height: photos[0].height,
+                                        public_id: photos[0].public_id
                                     }]}
                                 )
                             }
