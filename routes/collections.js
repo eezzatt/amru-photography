@@ -5,6 +5,7 @@ const authenticateToken = require('../middleware/authenticateToken')
 const upload = require('../config/upload')
 const uploadToCloudinary = require('../config/uploadToCloudinary')
 const deleteFromCloudinary = require('../config/deleteFromCloudinary')
+const deleteManyFromCloudinary = require('../config/deleteManyFromCloudinary')
 
 router.get('/', async (req, res) => {
     try {
@@ -176,90 +177,46 @@ router.post('/upload', authenticateToken, upload.array('photos', 50), async (req
 })
 
 
-router.delete('/delete/:slug', authenticateToken, async(req, res) => {
-    try {
-        const slug = req.params.slug
-        const collection_id_response = await pool.query(
-            'SELECT id FROM collections where slug = $1',
-            [slug]
-        )
-
-        if (!collection_id_response.rows[0]) {
-            return res.status(404).json({ error: "Collection does not exist"})
-        }
-
-        const collection_id = collection_id_response.rows[0].id
-
-        await pool.query('DELETE FROM photos where collection_id=$1', [collection_id])
-
-        await pool.query('DELETE FROM collections where id=$1', [collection_id])
-
-        return res.json({ message: "Collection deleted" })
-    }
-    catch (err) {
-        return res.status(500).json({ error: "Collection deletion failed"})
-    }
-})
-
-
-router.delete('/delete/:slug/photos', authenticateToken, async(req, res) => {
+router.delete('/delete/:slug', authenticateToken, async (req, res) => {
     let client
     try {
         const slug = req.params.slug
-        const collection_id_response = await pool.query(
-            'SELECT id, cover_photo_id FROM collections WHERE slug=$1',
+        const collection_response = await pool.query(
+            'SELECT id FROM collections WHERE slug = $1',
             [slug]
         )
 
-        if (!collection_id_response.rows[0]) {
-            return res.status(400).json({ error: "Collection does not exist" })
+        if (!collection_response.rows[0]) {
+            return res.status(404).json({ error: "Collection does not exist" })
         }
 
-        const collection_id = collection_id_response.rows[0].id
-        const cover_photo_id = collection_id_response.rows[0].cover_photo_id
+        const collection_id = collection_response.rows[0].id
 
-        const { photo_ids } = req.body
-
-        if (!Array.isArray(photo_ids) || photo_ids.length === 0) {
-            return res.status(400).json({ error: "Photo IDs required"})
-        }
-        
-        client = await pool.connect()
-
-        await client.query('BEGIN')
-
-        for (const photo_id of photo_ids) {
-            await client.query('DELETE FROM photos WHERE id=$1 AND collection_id=$2',
-                [photo_id, collection_id]
-            )
-        }
-
-        const coverCheck = await client.query(
-            'SELECT * FROM photos WHERE id = $1',
-            [cover_photo_id]
+        // Get the public IDs BEFORE deleting the rows
+        const photos_response = await pool.query(
+            'SELECT public_id FROM photos WHERE collection_id = $1',
+            [collection_id]
         )
+        const public_ids = photos_response.rows.map(row => row.public_id)
 
-        if ( coverCheck.rowCount === 0) {
-            const new_cover = await client.query(
-                'SELECT id FROM photos WHERE collection_id = $1 LIMIT 1',
-                [collection_id]
-            )
-
-            const new_cover_id = new_cover.rows[0] ? new_cover.rows[0].id : null
-
-            await client.query(
-                'UPDATE collections SET cover_photo_id = $1 WHERE slug = $2',
-                [new_cover_id, slug]
-            )
-        }
-
+        client = await pool.connect()
+        await client.query('BEGIN')
+        await client.query('DELETE FROM photos WHERE collection_id = $1', [collection_id])
+        await client.query('DELETE FROM collections WHERE id = $1', [collection_id])
         await client.query('COMMIT')
 
-        return res.json({ message: "Photos deleted successfully"})
+        // Only after the DB commit succeeds
+        const cloudinary_ok = await deleteManyFromCloudinary(public_ids)
+
+        return res.json({
+            message: cloudinary_ok
+                ? "Collection deleted"
+                : "Collection deleted, but some images could not be removed from Cloudinary"
+        })
     }
     catch (err) {
         if (client) await client.query('ROLLBACK')
-        return res.status(500).json({ message: "Internal server error" })
+        return res.status(500).json({ error: "Collection deletion failed" })
     }
     finally {
         if (client) client.release()
@@ -267,28 +224,77 @@ router.delete('/delete/:slug/photos', authenticateToken, async(req, res) => {
 })
 
 
-router.delete('/delete/:slug/photos/cloudinary', authenticateToken, async (req, res) => {
+router.delete('/delete/:slug/photos', authenticateToken, async (req, res) => {
+    let client
     try {
-        const { public_ids } = req.body
+        const slug = req.params.slug
+        const collection_response = await pool.query(
+            'SELECT id, cover_photo_id FROM collections WHERE slug = $1',
+            [slug]
+        )
 
-        if (!Array.isArray(public_ids) || public_ids.length === 0) {
-            return res.status(400).json({ error: "Public IDs required"})
+        if (!collection_response.rows[0]) {
+            return res.status(400).json({ error: "Collection does not exist" })
         }
 
-        const deletePromises = public_ids.map(public_id => deleteFromCloudinary(public_id))
+        const collection_id = collection_response.rows[0].id
+        const cover_photo_id = collection_response.rows[0].cover_photo_id
 
-        const results = await Promise.all(deletePromises)
+        const { photo_ids } = req.body
 
-        for (const result of results) {
-            if (result.result != 'ok') {
-                return res.status(500).json({ error: "Deletion unsuccessful" })
-            }
+        if (!Array.isArray(photo_ids) || photo_ids.length === 0) {
+            return res.status(400).json({ error: "Photo IDs required" })
         }
 
-        return res.json({ message: "Photos removed successfully"})
+        // Only photos that belong to this collection
+        const photos_response = await pool.query(
+            'SELECT public_id FROM photos WHERE id = ANY($1::int[]) AND collection_id = $2',
+            [photo_ids, collection_id]
+        )
+        const public_ids = photos_response.rows.map(row => row.public_id)
+
+        client = await pool.connect()
+        await client.query('BEGIN')
+
+        await client.query(
+            'DELETE FROM photos WHERE id = ANY($1::int[]) AND collection_id = $2',
+            [photo_ids, collection_id]
+        )
+
+        const cover_check = await client.query(
+            'SELECT id FROM photos WHERE id = $1',
+            [cover_photo_id]
+        )
+
+        if (cover_check.rowCount === 0) {
+            const new_cover = await client.query(
+                'SELECT id FROM photos WHERE collection_id = $1 ORDER BY id LIMIT 1',
+                [collection_id]
+            )
+            const new_cover_id = new_cover.rows[0] ? new_cover.rows[0].id : null
+
+            await client.query(
+                'UPDATE collections SET cover_photo_id = $1 WHERE id = $2',
+                [new_cover_id, collection_id]
+            )
+        }
+
+        await client.query('COMMIT')
+
+        const cloudinary_ok = await deleteManyFromCloudinary(public_ids)
+
+        return res.json({
+            message: cloudinary_ok
+                ? "Photos deleted successfully"
+                : "Photos deleted, but some images could not be removed from Cloudinary"
+        })
     }
     catch (err) {
+        if (client) await client.query('ROLLBACK')
         return res.status(500).json({ error: "Internal server error" })
+    }
+    finally {
+        if (client) client.release()
     }
 })
 
