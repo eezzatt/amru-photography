@@ -16,6 +16,26 @@ function CollectionsGallery() {
 
     const isLoggedIn = useAuth()
 
+    async function loadPhotos() {
+        try {
+            const response = await fetch(`http://localhost:3000/api/collections/${slug}/photos`)
+            const data = await response.json()
+            const { name, description, photos } = data
+            setPhotos(photos)
+            setName(name)
+            setDescription(description)
+        }
+        catch (error) {
+            console.log(error)
+        }
+    }
+
+
+    useEffect(() => {
+        loadPhotos()
+    }, [])
+
+
     function toggleSelection(photoID) {
         if (selectedPhotos.includes(photoID)) {
             setSelectedPhotos(selectedPhotos.filter(id => id !== photoID))
@@ -37,67 +57,42 @@ function CollectionsGallery() {
         return className
     }
 
-    async function deletePhotos(selectedPhotos) {
-        let publicIDs = []
-        for (const photoID of selectedPhotos) {
-            const publicID = photoList.find(el => el.id === photoID).public_id
-            publicIDs.push(publicID)
+
+    async function deletePhotos(selected) {
+        try {
+            const response = await fetch(
+                `http://localhost:3000/api/collections/delete/${slug}/photos`, {
+                    method: 'DELETE',
+                    headers: {
+                        'content-type': 'application/json',
+                        'authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ photo_ids: selected })
+                }
+            )
+            const data = await response.json()
+
+            if (response.ok) {
+                setSelectedPhotos([])
+                loadPhotos()
+                setDeletionResult(data.message)
+            }
+            else {
+                setDeletionResult(data.error)
+            }
         }
-
-        const dbDeletionResponse = await fetch(
-            `http://localhost:3000/api/collections/delete/${slug}/photos`, {
-                method: 'DELETE',
-                headers: {
-                    'content-type': 'application/json',
-                    'authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    photo_ids: selectedPhotos
-                })
-            }
-        )
-
-        const cloudDeletionResponse = await fetch(
-            `http://localhost:3000/api/collections/delete/${slug}/photos/cloudinary`, {
-                method: 'DELETE',
-                headers: {
-                    'content-type': 'application/json',
-                    'authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify({
-                    public_ids: publicIDs
-                })
-            }
-        )
-
-        const dbDeletionData = await dbDeletionResponse.json()
-        setDeletionResult(dbDeletionData.message)
+        catch (error) {
+            console.log(error)
+        }
     }
 
     
-    useEffect(() => {
-        async function loadPhotos() {
-            try {
-                const response = await fetch(`http://localhost:3000/api/collections/${slug}/photos`)
-                const data = await response.json()
-                const { name, description, photos } = data
-                setPhotos(photos)
-                setName(name)
-                setDescription(description)
-            }
-            catch (error) {
-                console.log(error)
-            }
-        }
-        loadPhotos()
-    }, [slug])
-    
     return (
         <div>
-            <h2>
+            <h2 className="gallery-name">
                 {name}
             </h2>
-            <h3>
+            <h3 className="gallery-description">
                 {description}
             </h3>
             <div className="gallery-grid">
