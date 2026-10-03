@@ -10,3 +10,11 @@
     break-inside: avoid;
     display: block
 }
+
+.selectable:hover {
+    cursor: pointer;
+}
+
+.selected {
+    opacity: 0.5;
+}
