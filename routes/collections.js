@@ -59,6 +59,7 @@ router.get('/:slug/photos', async (req, res) => {
     }
 })
 
+
 router.post('/create', authenticateToken, async (req, res) => {
     try {
         const { collection_name, description } = req.body
@@ -205,7 +206,8 @@ router.delete('/delete/:slug/photos', authenticateToken, async(req, res) => {
     let client
     try {
         const slug = req.params.slug
-        const collection_id_response = await pool.query('SELECT id FROM collections WHERE slug=$1',
+        const collection_id_response = await pool.query(
+            'SELECT id, cover_photo_id FROM collections WHERE slug=$1',
             [slug]
         )
 
@@ -214,6 +216,7 @@ router.delete('/delete/:slug/photos', authenticateToken, async(req, res) => {
         }
 
         const collection_id = collection_id_response.rows[0].id
+        const cover_photo_id = collection_id_response.rows[0].cover_photo_id
 
         const { photo_ids } = req.body
 
@@ -228,6 +231,25 @@ router.delete('/delete/:slug/photos', authenticateToken, async(req, res) => {
         for (const photo_id of photo_ids) {
             await client.query('DELETE FROM photos WHERE id=$1 AND collection_id=$2',
                 [photo_id, collection_id]
+            )
+        }
+
+        const coverCheck = await client.query(
+            'SELECT * FROM photos WHERE id = $1',
+            [cover_photo_id]
+        )
+
+        if ( coverCheck.rowCount === 0) {
+            const new_cover = await client.query(
+                'SELECT id FROM photos WHERE collection_id = $1 LIMIT 1',
+                [collection_id]
+            )
+
+            const new_cover_id = new_cover.rows[0] ? new_cover.rows[0].id : null
+
+            await client.query(
+                'UPDATE collections SET cover_photo_id = $1 WHERE slug = $2',
+                [new_cover_id, slug]
             )
         }
 
