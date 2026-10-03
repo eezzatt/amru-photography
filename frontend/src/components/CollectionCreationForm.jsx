@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useAuth } from "../hooks/useAuth"
 import "./CollectionCreationForm.css"
 
-function CollectionCreationForm () {
+function CollectionCreationForm ({ onSuccess }) {
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
     const [result, setResult] = useState('')
@@ -74,6 +74,7 @@ function CollectionCreationForm () {
                         if (photo_db_response.ok) {
                             const message  = collection_data.message
                             setResult(message)
+                            onSuccess()
                         }
                     }
                     else {
