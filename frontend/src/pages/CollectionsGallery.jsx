@@ -72,10 +72,6 @@ function CollectionsGallery() {
 
         const dbDeletionData = await dbDeletionResponse.json()
         setDeletionResult(dbDeletionData.message)
-
-        
-
-
     }
 
     
