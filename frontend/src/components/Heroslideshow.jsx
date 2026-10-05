@@ -12,7 +12,7 @@ function Heroslideshow() {
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length)
-        }, 3000)
+        }, 8000)
 
         return () => clearInterval(interval)
     }, [])
