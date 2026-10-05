@@ -1,12 +1,15 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import "./LoginPage.css"
+import { useContext } from "react"
+import { AuthContext } from "../context/AuthContext"
 
 function LoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
     const navigate = useNavigate()
+    const { login } = useContext(AuthContext)
 
 
     async function handleSubmit(e) {
@@ -24,7 +27,7 @@ function LoginPage() {
         })
             if (response.ok) {
                 const data = await response.json()
-                localStorage.setItem("token", data.token)
+                login(data.token)
                 navigate('/')
             }
             else {

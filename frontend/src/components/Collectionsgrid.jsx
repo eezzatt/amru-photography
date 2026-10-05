@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import './Collectionsgrid.css'
-import { Link, useParams } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { Link } from "react-router-dom";
 import Modal from "./Modal";
 import CollectionCreationForm from "./CollectionCreationForm";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 function Collectionsgrid() {
     const [galleries, setGalleries] = useState([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [ deletionResult, setDeletionResult ] = useState('')
 
-    const isLoggedIn = useAuth()
+    const isLoggedIn = useContext(AuthContext).isLoggedIn
 
     async function loadCollections() {
         try {

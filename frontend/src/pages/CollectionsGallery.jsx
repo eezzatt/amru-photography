@@ -3,7 +3,8 @@ import { useParams } from "react-router-dom"
 import './CollectionsGallery.css'
 import Modal from "../components/Modal"
 import PhotoInsertionForm from "../components/PhotoInsertionForm"
-import { useAuth } from "../hooks/useAuth"
+import { useContext } from "react"
+import { AuthContext } from "../context/AuthContext"
 
 function CollectionsGallery() {
     const { slug } = useParams()
@@ -14,7 +15,7 @@ function CollectionsGallery() {
     const [selectedPhotos, setSelectedPhotos] = useState([])
     const [deletionResult, setDeletionResult] = useState('')
 
-    const isLoggedIn = useAuth()
+    const isLoggedIn = useContext(AuthContext).isLoggedIn
 
     async function loadPhotos() {
         try {
@@ -107,7 +108,7 @@ function CollectionsGallery() {
             ))}
                 {isLoggedIn && <button onClick={() => setIsModalOpen(true)}>Add photo</button>}
                 <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                    <PhotoInsertionForm slug={slug}></PhotoInsertionForm>
+                    <PhotoInsertionForm onSuccess={loadPhotos} slug={slug}></PhotoInsertionForm>
                 </Modal>
 
                 {isLoggedIn && selectedPhotos.length > 0 && 
