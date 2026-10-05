@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useAuth } from "../hooks/useAuth"
 import './PhotoInsertionForm.css'
 
-function PhotoInsertionForm ({ slug }) {
+function PhotoInsertionForm ({ onSuccess, slug }) {
     const [photoFiles, setPhotoFiles] = useState([])
     const [result, setResult] = useState('')
     const authenticate = useAuth()
@@ -46,6 +46,7 @@ function PhotoInsertionForm ({ slug }) {
                     if (db_response.ok) {
                         const { message } = db_data
                         setResult(message)
+                        onSuccess()
                     }
                     else {
                         const { error } = db_data
